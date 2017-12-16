@@ -57,8 +57,8 @@ H5P.ImageGrid = (function($){
 
                         var $element= $("<li />").
                                 css("background-position","-" + (fragmentList[i].width*fragmentList[i].col) +"px -" +(fragmentList[i].height*fragmentList[i].row) +"px")
-                                .css("width", fragmentWidth +"px")
-                                .css("height", fragmentHeight +"px")
+                                .css("width", fragmentWidth+"px")
+                                .css("height", fragmentHeight+"px")
                                 .css("background-image", "url("+H5P.getPath(self.params.image.path,self.id)+")")
                                 .css("display", "inline-block")
                                 .css("margin", 2);
@@ -67,7 +67,7 @@ H5P.ImageGrid = (function($){
                 } 
 
                
-                $grid.append($container);
+                $container.append($grid);
                 H5P.trigger("resize");
                 
         }
