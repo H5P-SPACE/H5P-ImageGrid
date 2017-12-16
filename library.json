@@ -17,6 +17,9 @@
         "preloadedJs": [
                 {
                         "path": "js/h5p-image-grid.js"
+                },
+                {
+                        "path": "js/h5p-image-grid-fragment.js"
                 }
         ],
         "editorDependencies": [
