@@ -1,8 +1,9 @@
 [
         {
-                "label":"Image",
-                "name": "image",
-                "type": "image"
+                "label" : "Image",
+                "name" : "image",
+                "type" : "image"
+
         },
         {
                   "name": "levels",
@@ -12,36 +13,47 @@
                   "options": [
                     {
                         "label": "3x3",
-                        "value": 3
+                        "value" : "3"
                     },
                     {
-                      "label": "4x4",
-                      "value": 4
+                      "label" : "4x4",
+                      "value" : "4"
                     },
                     {
-                         "label": "5x5",
-                         "value": 5
+                         "label" : "5X5",
+                         "value" : "5"
+                    },
+                    {
+                         "label" : "6X6",
+                         "value" : "6"
+                    },
+                    {
+                         "label" : "7X7",
+                         "value" : "7"
                     }
                   ],
-                  "default" : 3
+                  "default" : "3"
         },
         {
-                "name": "allowUserDifficulty",
-                "type": "select",
-                "widget": "radioGroup",
-                "alignment": "horizontal",
-                "label": " Allow User To Choose Difficulty",
-                "options": [
-                        {
-                                "value": "true",
-                                "label": "Yes"
-                        },
-                        {
-                                "value": "false",
-                                "label": "No"
-                        }
-                ],
-                "default": "true"
-        }
-]
+                  "name" : "chooseDifficulty",
+                  "label" : "Allow user to choose difficulty",
+                  "type" : "select",
+                  "alignment" : "horizontal",
+                  "widget" : "radioGroup",
+                  "options" : [
+                    {
+                      "value" : "true",
+                      "label" : "Yes"
 
+                    },
+                    {
+                      "value" : "false",
+                      "label" : "No"
+
+                    }
+                  ],
+                  "default" : "true"
+
+        }
+
+]
