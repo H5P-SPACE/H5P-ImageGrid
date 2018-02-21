@@ -7,7 +7,7 @@
       var self = this;
       EventDispatcher.call(self);
       var srcImage = H5P.getPath(image.path,id);
-      var fragmentId = row*level+col;
+      self.fragmentId = row*level+col;
       var bWidth = Math.floor(image.width/level);
       var bHeight = Math.floor(image.height/level);
       var backgroundXPosition=col*bWidth;
@@ -18,7 +18,7 @@
 
 
       self.appendTo = function($container){
-          self.$fragment = $('<div class="li-class" data-id = "'+ fragmentId +'"></div>')
+          self.$fragment = $('<div class="li-class" data-id = "'+ self.fragmentId +'"></div>')
                       .css('background-image','url(' + srcImage + ')')
                       .css('background-position',(-backgroundXPosition)+'px '+ (-backgroundYPosition)+'px ')
                       .css('height',bHeight+'px')

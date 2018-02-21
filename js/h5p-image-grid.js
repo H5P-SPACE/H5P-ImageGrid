@@ -319,7 +319,7 @@ function ImageGrid(params,id){
   var imageFragments = [];
   var MIN_IMAGE_WIDTH=600;
   var MIN_IMAGE_HEIGHT=300;
-  var gameLevel = params.levels;
+  var gameLevel = parseInt(params.levels);
 
   var getImageOrientation = function(){
 
@@ -399,130 +399,127 @@ function ImageGrid(params,id){
 
   }
 
-  var createFirstLevelHolders = function(level,fragmentWidth,fragmentHeight){
-
+  var createFragmentHolders = function(level,fragmentWidth,fragmentHeight){
     var holderContainer = [];
-
+    var droppableContainer = [];
     for(var i=0;i<level;i++){
       for(var j=0;j<level;j++){
+        var $holder = $('<div />');
+        $holder.css('height',(fragmentHeight)+'px');
+        $holder.css('width',(fragmentWidth)+'px');
+        $holder.css('top',(i*fragmentHeight+(i*2))+'px');
+        $holder.css('left',(j*fragmentWidth+(j*2))+'px');
+        //it is fragment container
         if((i==0 || i== level-1) ||(j==0 || j== level-1)) {
-
-          console.log("the value of j is"+(i*level+j));
-          //place the fragments in all over the row
-          var $fragmentContainer= $('<div class="li-class-primary-container"/>');
-          $fragmentContainer.css('height',(fragmentHeight)+'px');
-          $fragmentContainer.css('width',(fragmentWidth)+'px');
-          $fragmentContainer.css('top',(i*fragmentHeight+(i*2))+'px');
-          $fragmentContainer.css('left',(j*fragmentWidth+(j*2))+'px');
-
-          holderContainer.push($fragmentContainer)
-          // imageFragments[0].appendTo($fragmentContainer);
-          // $fragmentContainer.appendTo($container);
-
+          $holder.addClass('holder-container');
+          holderContainer.push($holder);
+        }
+        // it is a droppable container
+        else{
+          $holder.addClass('droppable-container');
+          var droppableId = (i-1)*(level-2)+ (j-1)
+          $holder.data('id',droppableId);
+          droppableContainer.push($holder);
         }
 
 
       }
     }
+    if(((level-1)*4) < gameLevel*gameLevel){
+      var rqdSecondaryHolders = (gameLevel*gameLevel) - ((level-1)*4);
+      var secondLevelHolders = createExtraHolders(level-1,fragmentWidth,fragmentHeight);
+      H5P.shuffleArray(secondLevelHolders);
+      holderContainer = holderContainer.concat(secondLevelHolders.slice(0,rqdSecondaryHolders));
+    }
 
-    return holderContainer;
-
+    return [holderContainer,droppableContainer];
   }
 
-  var createSecondLevelHolders = function(level,fragmentWidth,fragmentHeight){
+  var createExtraHolders = function(level,fragmentWidth,fragmentHeight){
 
     var holderContainer = [];
 
     for(var i=0;i<level;i++){
       for(var j=0;j<level;j++){
+        var $fragmentContainer= $('<div class="secondary-holder-container"/>');
+        $fragmentContainer.css('height',(fragmentHeight)+'px');
+        $fragmentContainer.css('width',(fragmentWidth)+'px');
         if(i==0 || i== level-1)  {
-
-
-          //place the fragments in all over the row
-          var $fragmentContainer= $('<div class="li-class-secondary-container"/>');
-          $fragmentContainer.css('height',(fragmentHeight)+'px');
-          $fragmentContainer.css('width',(fragmentWidth)+'px');
           $fragmentContainer.css('top',(i*fragmentHeight+(i*2)+((i/(level-1))*fragmentHeight))+'px');
           $fragmentContainer.css('left',(j*fragmentWidth+(j*2)+(fragmentWidth/2))+'px');
-
-          holderContainer.push($fragmentContainer);
-          // imageFragments[0].appendTo($fragmentContainer);
-          // $fragmentContainer.appendTo($container);
-
         }
-
         else if(j==0 || j== level-1){
-
-          var $fragmentContainer= $('<div class="li-class-secondary-container"/>');
-          $fragmentContainer.css('height',(fragmentHeight)+'px');
-          $fragmentContainer.css('width',(fragmentWidth)+'px');
           $fragmentContainer.css('top',(i*fragmentHeight+(i*2)+(fragmentHeight/2))+'px');
           $fragmentContainer.css('left',(j*fragmentWidth+(j*2)+((j/(level-1))*fragmentWidth))+'px');
-
-          holderContainer.push($fragmentContainer);
         }
-
-
+        holderContainer.push($fragmentContainer);
       }
     }
-
     return holderContainer;
-
   }
 
   var createGameBoard = function($container,width,height){
 
     $container.empty();
+    $playAreaContainer = $('<div class="play-area-container" />').appendTo($container);
 
     var fragmentWidth = Math.floor(width/gameLevel);
     var fragmentHeight = Math.floor(height/gameLevel);
-    $container.css('height',(gameLevel*fragmentHeight)+'px');
+
+    // hard coded 20...need to remove
+    $container.css('height',((gameLevel+2)*fragmentHeight+20)+'px');
 
     getFragmentsToUse(fragmentWidth,fragmentHeight);
 
     if(gameMode[1]=== 'landscape'){
       // place the images around the container;
 
+      var margin = ($container.width()- fragmentWidth*(gameLevel+2))/2;
+      $playAreaContainer.css('margin-left', margin+'px');
+
       var holders=[];
       var firstLevelHolders=[];
       var secondLevelHolders=[];
-
-      var level = parseInt(gameLevel)+2;
-      // var firstLevelHolders = level*4;
-      // var secondLevelHolders = gameLevel*4;
-
-      //create firstLevelHolders
-      // pickrandom holders of gamelevel2 lenght
-
-      holders = createFirstLevelHolders(level,fragmentWidth,fragmentHeight);
-
-
-      if(((level-1)*4) < gameLevel*gameLevel){
-        var rqdSecondaryHolders = (gameLevel*gameLevel) - ((level-1)*4);
-        secondLevelHolders = createSecondLevelHolders(level-1,fragmentWidth,fragmentHeight);
-        H5P.shuffleArray(secondLevelHolders);
-        holders= holders.concat(secondLevelHolders.slice(0,rqdSecondaryHolders));
-        console.log(secondLevelHolders.slice(0,rqdSecondaryHolders).length);
-      }
-      H5P.shuffleArray(holders);
-      var finalHolders= holders.splice(0, gameLevel*gameLevel );
-
-
-
-
-      $container.css('height',((parseInt(gameLevel)+2)*fragmentHeight)+'px');
-
+      // increment the level by 2 for placing the fragments around the grid
+      var level = gameLevel+2;
+      holders = createFragmentHolders(level,fragmentWidth,fragmentHeight);
+      var fragmentHolders= holders[0];
+      var finalHolders= holders[0].splice(0, gameLevel*gameLevel );
       for(var i=0;i<gameLevel;i++){
         for(var j=0;j<gameLevel;j++){
           var $fragmentContainer= finalHolders[(i*gameLevel+j)];
+          var $droppableContainer = holders[1][(i*gameLevel+j)];
           imageFragments[(i*gameLevel+j)].appendTo($fragmentContainer);
-          $fragmentContainer.appendTo($container);
+          $fragmentContainer.appendTo($playAreaContainer);
+          $droppableContainer.appendTo($playAreaContainer);
+          $fragmentContainer.draggable({
+
+            revert: function(){
+              if($(this).hasClass('drag-revert')){
+                $(this).removeClass('drag-revert');
+                return true;
+              }
+            },
+
+          });
+          $droppableContainer.droppable({
+
+            drop: function(event,ui){
+
+              var droppableId = $(this).data('id');
+              var draggableId = ui.draggable.find('.li-class').data('id');
+              if(droppableId != draggableId){
+                return ui.draggable.addClass('drag-revert');
+              }
+              ui.draggable.position({
+                my: "center",
+                at: "center",
+                of: $(this)
+              });
+            }
+          });
         }
       }
-
-
-
-
     }
 
 
@@ -561,7 +558,7 @@ function ImageGrid(params,id){
       $container.append($difficultyContainer);
 
       $difficultyContainer.find('select').on('change', function(){
-        gameLevel=this.value;
+        gameLevel= parseInt(this.value);
         createGridOverImage ($gameContainer,imageWidth,imageHeight);
       });
 
@@ -582,11 +579,6 @@ function ImageGrid(params,id){
       },
 
     }).appendTo($startPuzzleButtonContainer);
-
-
-
-
-
 
 
     self.trigger('resize');
