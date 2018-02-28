@@ -317,6 +317,10 @@ function ImageGrid(params,id){
   var imageOrientation,screenOrientation;
   var gameMode =[];
   var imageFragments = [];
+  var orderedFragments =[];
+  var fragmentsToMatch =[];
+  var finalHolders = [];
+  var score=0;
   var MIN_IMAGE_WIDTH=600;
   var MIN_IMAGE_HEIGHT=300;
   var gameLevel = parseInt(params.levels);
@@ -372,6 +376,8 @@ function ImageGrid(params,id){
       }
     }
 
+    orderedFragments = imageFragments.slice();
+    fragmentsToMatch = imageFragments.slice();
     H5P.shuffleArray(imageFragments);
 
   }
@@ -461,13 +467,43 @@ function ImageGrid(params,id){
   var createGameBoard = function($container,width,height){
 
     $container.empty();
+    $gameHeaderContainer= $('<div class="game-header-container" />').appendTo($container);
+    $timerContainer = $('<div class="timer-container" ><button><span class="h5p-time-spent"> 0:00 </span> </button> </div>').appendTo($gameHeaderContainer);
+    $headerButtonContainer = $('<div class="header-button-container" > <button class="preview" >Preview Solution</button>\
+    <button class="shuffle"> Shuffle Pieces </button ></div>').appendTo($gameHeaderContainer);
     $playAreaContainer = $('<div class="play-area-container" />').appendTo($container);
 
+    self.timer = new ImageGrid.Timer($timerContainer.find('.h5p-time-spent')[0]);
+
+    $headerButtonContainer.find('.preview').on('click',function(){
+      if($(this).hasClass('active')){
+        $playAreaContainer.find('.droppable-container .li-class').css('visibility','hidden');
+        $(this).html('Preview Solution').removeClass('active');
+
+      }
+      else{
+        $playAreaContainer.find('.droppable-container .li-class').css('visibility','visible');
+        $(this).html('Hide Solution').addClass('active');
+      }
+
+    });
+
+    $headerButtonContainer.find('.shuffle').on('click', function(){
+
+      console.log(fragmentsToMatch.length);
+      console.log(finalHolders.length);
+      H5P.shuffleArray(fragmentsToMatch);
+
+      for(var i=0; i< finalHolders.length; i++){
+        finalHolders[i].empty();
+        fragmentsToMatch[i].appendTo(finalHolders[i]);
+      }
+    });
     var fragmentWidth = Math.floor(width/gameLevel);
     var fragmentHeight = Math.floor(height/gameLevel);
 
     // hard coded 20...need to remove
-    $container.css('height',((gameLevel+2)*fragmentHeight+20)+'px');
+
 
     getFragmentsToUse(fragmentWidth,fragmentHeight);
 
@@ -476,6 +512,7 @@ function ImageGrid(params,id){
 
       var margin = ($container.width()- fragmentWidth*(gameLevel+2))/2;
       $playAreaContainer.css('margin-left', margin+'px');
+      $playAreaContainer.css('height',((gameLevel+2)*fragmentHeight+40)+'px');
 
       var holders=[];
       var firstLevelHolders=[];
@@ -484,25 +521,52 @@ function ImageGrid(params,id){
       var level = gameLevel+2;
       holders = createFragmentHolders(level,fragmentWidth,fragmentHeight);
       var fragmentHolders= holders[0];
-      var finalHolders= holders[0].splice(0, gameLevel*gameLevel );
+      finalHolders= holders[0].splice(0, gameLevel*gameLevel );
       for(var i=0;i<gameLevel;i++){
         for(var j=0;j<gameLevel;j++){
           var $fragmentContainer= finalHolders[(i*gameLevel+j)];
           var $droppableContainer = holders[1][(i*gameLevel+j)];
           imageFragments[(i*gameLevel+j)].appendTo($fragmentContainer);
+
           $fragmentContainer.appendTo($playAreaContainer);
+          orderedFragments[(i*gameLevel+j)].appendTo($droppableContainer);
           $droppableContainer.appendTo($playAreaContainer);
           $fragmentContainer.draggable({
+
+            start:function(){
+              self.timer.play();
+              $playAreaContainer.find('.ui-droppable').addClass('droppable-active');
+              $playAreaContainer.find('.dropped').addClass('scale-element');
+            },
 
             revert: function(){
               if($(this).hasClass('drag-revert')){
                 $(this).removeClass('drag-revert');
                 return true;
               }
+              //for proper reverting
+              else if(!($(this).hasClass('dropped'))){
+                return true;
+              }
+
             },
+            stop: function(){
+                $playAreaContainer.find('.drag-over').removeClass('drag-over');
+                $playAreaContainer.find('.ui-droppable').removeClass('droppable-active');
+                $playAreaContainer.find('.dropped').removeClass('scale-element');
+                console.log('dragend');
+            }
+
 
           });
           $droppableContainer.droppable({
+
+            over: function(){
+              $(this).addClass('drag-over');
+            },
+            out: function(){
+              $(this).removeClass('drag-over');
+            },
 
             drop: function(event,ui){
 
@@ -516,10 +580,42 @@ function ImageGrid(params,id){
                 at: "center",
                 of: $(this)
               });
+
+              for (var i = fragmentsToMatch.length; i--;) {
+                if (fragmentsToMatch[i].fragmentId === draggableId) {
+                  fragmentsToMatch.splice(i, 1);
+                }
+              }
+
+              for (var i = finalHolders.length; i--;) {
+                if (finalHolders[i].find('.li-class').data('id') === draggableId) {
+                  finalHolders.splice(i, 1);
+                }
+              }
+
+
+
+
+
+             $(this).droppable( "option", "disabled", true );
+             $(this).removeClass('ui-droppable').removeClass('droppable-active');
+
+              ui.draggable.addClass('dropped');
+
+              score++;
+
+              if(score == (gameLevel*gameLevel)){
+                gameFinished($container);
+              }
+              else{
+                console.log(gameLevel*gameLevel);
+              }
             }
           });
         }
       }
+
+      H5P.trigger('resize');
     }
 
 
@@ -528,6 +624,48 @@ function ImageGrid(params,id){
 
 
 
+  }
+
+  var gameFinished = function($container){
+
+    var timeSpent = $container.find('.h5p-time-spent').html();
+
+    $container.empty();
+    var $gameContainer = $('<div class="game-container"><img src="'+gridSrcImage+'"/></div>').appendTo($container);
+    setContainerOrientation($container);
+    imageWidth=$container.find('img').width();
+    imageHeight= $container.find('img').height();
+    // var fragmentWidth = Math.floor(imageWidth/gameLevel);
+    // var fragmentHeight = Math.floor(imageHeight/gameLevel);
+    // var $canvasContainer = $('<canvas class="grid-canvas" width="'+imageWidth+'" height="'+imageHeight+'">');
+    // $canvasContainer.css('background-image','url("'+gridSrcImage+'")');
+    // $canvasContainer.appendTo($container);
+
+
+    $('<div class="final-status-container"><h1> Puzzle Completed ! </h1> <h3> Time Spent : '+ timeSpent +' </h3> </div>').appendTo($container);
+
+
+    $retryPuzzleButtonContainer =$('<div class = "retry-button-container" > </div>').appendTo($container);
+
+    var $retryPuzzleButton = UI.createButton({
+      title: 'Button',
+      'text': 'Retry',
+      click: function(){
+        retryPuzzle($container);
+      },
+
+    }).appendTo($retryPuzzleButtonContainer);
+
+
+
+  }
+
+  var retryPuzzle = function($container){
+    score = 0;
+    imageFragments = [];
+    gameLevel = parseInt(params.levels);
+    $container.empty();
+    self.attach($container);
   }
 
   console.log(gameMode);
@@ -557,6 +695,8 @@ function ImageGrid(params,id){
       <option value="7">49 Pieces</option></select></div></div>');
       $container.append($difficultyContainer);
 
+    $difficultyContainer.find('option[value='+params.levels+']').attr('selected','selected');
+
       $difficultyContainer.find('select').on('change', function(){
         gameLevel= parseInt(this.value);
         createGridOverImage ($gameContainer,imageWidth,imageHeight);
@@ -565,9 +705,7 @@ function ImageGrid(params,id){
     }
 
 
-    var $fullScreenTogglerContainer= $('<div class="screen-toggler-container"></div>').appendTo($container);
-    var $fullScreenToggler=$('<label class="switch">FullScreen</label><label class="switch"> <input type="checkbox">  <span class="slider round"></span>\
-    </label>').appendTo($fullScreenTogglerContainer);
+  
 
     var $startPuzzleButtonContainer = $('<div class="start-puzzle-button-container"></div>').appendTo($container);
 

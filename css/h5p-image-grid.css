@@ -104,13 +104,77 @@
 }
 .secondary-holder-container{
   position: absolute;
-  border:2px solid red;
+  /*border:2px solid red;*/
   z-index:4;
 }
 .droppable-container{
   position: absolute;
-  border:2px solid red;
+  /*border:2px solid red;*/
   z-index:4;
+}
+
+.drag-over{
+  background-color: lightgrey;
+  z-index:1;
+}
+.droppable-active{
+  border: 1px solid red;
+  transform: scale(0.9);
+  transform-origin: 0 0;
+
+}
+.scale-element{
+  transform: scale(0.9);
+  transform-origin: 0 0;
+}
+
+.droppable-container .li-class{
+  visibility: hidden;
+  opacity: 0.3;
+}
+
+
+.ui-draggable-dragging{
+  z-index: 2;
+  transform: scale(0.9);
+  transform-origin: 0 0;
+}
+.timer-container{
+  float:left;
+}
+.header-button-container{
+  float:right;
+}
+
+.game-header-container{
+  background-color: lightgrey;
+  overflow: auto;
+  margin-bottom: 6px;
+}
+
+.header-button-container button , .timer-container button{
+  background-color: #FFFFFF; /* Green */
+  border: none;
+  color: black;
+  text-align: center;
+  text-decoration: none;
+  display: inline-block;
+  font-size: 16px;
+  margin: 4px 2px;
+  cursor: pointer;
+  padding: 7px 20px;
+}
+
+.play-area-container{
+  clear:both;
+}
+
+.final-status-container{
+  text-align: center;
+}
+
+.retry-button-container{
+  text-align: center;
 }
 /*===========slider================*/
 
