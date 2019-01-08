@@ -543,6 +543,8 @@ H5P.ImageGrid = (function ($, UI) {
 
       $optionContainer.appendTo($initContainer);
 
+      //first phase of editi
+
       fitGridPattern($container);
 
       var delay = (function () {

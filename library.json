@@ -2,7 +2,7 @@
         "title": "Image Grid",
         "description": "Place the image fragments in proper position to reconstruct the image",
         "majorVersion": 1,
-        "minorVersion": 5,
+        "minorVersion": 6,
         "patchVersion": 2,
         "runnable": 1,
         "machineName": "H5P.ImageGrid",
@@ -11,7 +11,7 @@
         "embedTypes": ["iframe"],
         "preloadedCss": [
                 {
-                        "path": "css/h5p-image-grid.css"
+                        "path": "styles/h5p-image-grid.css"
                 }
         ],
         "preloadedJs": [
