@@ -1,6 +1,8 @@
 .h5p-image-grid{
   width: 100%;
   display:table;
+  border: 1px solid #eeeeee;
+  font-family: Helvetica, Arial, sans-serif;
 }
 
 .h5p-image-grid .init-image-container{
@@ -176,4 +178,23 @@
 
 .h5p-image-grid .button-container .status-button{
   margin:0.2em;
+}
+
+/*testing part placing zone*/
+
+.placing-zone{
+  border: 2px solid blue;
+}
+.placing-zone-horizontal{
+  display:block;
+}
+.placing-zone-vertical {
+  display:table-cell;
+}
+.placing-image-container{
+  display:table-cell;
+}
+
+.placing-image-container img{
+  width: 100%;
 }

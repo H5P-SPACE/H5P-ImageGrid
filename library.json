@@ -23,6 +23,9 @@
                 },
                 {
                         "path": "js/h5p-image-grid-timer.js"
+                },
+                {
+                        "path": "js/h5p-image-grid-placing-zone.js"
                 }
         ],
         "preloadedDependencies": [

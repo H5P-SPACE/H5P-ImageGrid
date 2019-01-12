@@ -58,6 +58,7 @@ H5P.ImageGrid = (function ($,UI) {
       click: function () {
         that.gotoPlayArea();
       }
+      // TODO: handle fullscreen functionality
       // TODO : semantics for this text
     });
 
@@ -118,8 +119,185 @@ H5P.ImageGrid = (function ($,UI) {
     this.$showSolutionButton.appendTo(this.$buttonContainer);
     this.$buttonContainer.appendTo(this.$statusContainer);
     this.$statusContainer.appendTo(this.$container);
+
+    this.$playArea.appendTo(this.$container);
+
+    this.preparePlayArea();
   };
 
+  ImageGrid.prototype.preparePlayArea = function () {
+    this.setPlayAreaParams();
+    // TODO: name context should check
+    this.placeZonesToPlayArea();
+
+
+  };
+
+  ImageGrid.prototype.setPlayAreaParams = function () {
+
+    if (this.gameMode[0] === 'landscape' && this.gameMode[1]=== 'landscape') {
+      // TODO: 4 side mode
+      const fragmentsPerZone = {'3':3,'4':4,'5':4,'6':5,'7':7};
+      this.fragmentZonesCount = Math.ceil(this.gameLevel/4)*4;
+      this.fragmentsPerZone = fragmentsPerZone[this.gameLevel];
+    }
+    else {
+      // TODO: 2 side mode
+      this.fragmentZonesCount = Math.ceil(this.gameLevel/2)*2;
+      this.fragmentsPerZone = this.gameLevel;
+    }
+
+    let numberOfFragments = this.gameLevel*this.gameLevel;
+    this.initializeFragments();
+    let iterationCycle = 0;
+    this.fZone = new Array(this.fragmentZonesCount).fill(0).map(() => new Array(this.fragmentsPerZone).fill(0));
+
+    while (numberOfFragments > 0) {
+      for (let i=0; i < this.fragmentZonesCount; i++) {
+        if (numberOfFragments <= 0 ) {
+          break;
+        }
+        this.fZone[i][iterationCycle]=this.fragments[numberOfFragments];
+        numberOfFragments--;
+      }
+      iterationCycle++;
+    }
+  };
+
+  ImageGrid.prototype.placeZonesToPlayArea = function () {
+    if (this.gameMode[0]=== 'landscape' && this.gameMode[1]=== 'landscape') {
+      //TBLR
+      this.placingMode = ['T','B','L','R'];
+      this.playAreaRow = this.playAreaCol =  this.gameLevel+ (this.fragmentZonesCount/4);
+    }
+    else if ( this.gameMode[0]=== 'portrait' ) {
+      //LR
+      this.placingMode = ['L','R'];
+      this.playAreaRow= this.gameLevel;
+      this.playAreaCol= this.gameLevel + (this.fragmentZonesCount);
+    }
+    else {
+      //TB
+      this.placingMode = ['T','B'];
+      this.playAreaCol= this.gameLevel;
+      this.playAreaRow= this.gameLevel + (this.fragmentZonesCount);
+    }
+
+    this.registerGridElements();
+  };
+
+
+  ImageGrid.prototype.registerGridElements = function () {
+
+    // Need to find the logic
+
+    let segmentPerDirection = this.fragmentZonesCount/this.placingMode.length;
+    const that = this;
+    //TODO: need to calculate responsively
+
+    const cellHeight = that.$playArea.height()/that.playAreaRow;
+    const cellWidth =  that.$playArea.width()/that.playAreaCol;
+    this.placingZones = [];
+    let zoneHeight = 0;
+    let zoneWidth = 0;
+    let orientation = '';
+
+    this.placingMode.forEach(function (orientation) {
+      let spd= segmentPerDirection;
+      switch (orientation) {
+        case 'L':
+          zoneHeight = cellHeight*that.playAreaRow;
+          zoneWidth = cellWidth;
+          orientation = 'L';
+          break;
+        case 'R':
+          zoneHeight = cellHeight*that.playAreaRow;
+          zoneWidth = cellWidth;
+          orientation = 'R';
+          break;
+        case 'T':
+          zoneWidth = cellWidth*that.playAreaCol;
+          zoneHeight = cellHeight;
+          orientation = 'T';
+          break;
+        case 'B':
+          zoneWidth = cellWidth*that.playAreaCol;
+          zoneHeight = cellHeight;
+          orientation = 'B';
+          break;
+      }
+
+
+
+      while (spd > 0) {
+        that.placingZones.push(new ImageGrid.PlacingZone(zoneWidth,zoneHeight,orientation));
+        spd--;
+      }
+
+    });
+
+    let leftArea = this.placingZones.filter(function (zone) {
+      return zone.orientation === 'L';
+    });
+
+    let rightArea = this.placingZones.filter(function (zone) {
+      return zone.orientation === 'R';
+    });
+
+    let topArea = this.placingZones.filter(function (zone) {
+      return zone.orientation === 'T';
+    });
+
+    let bottomArea = this.placingZones.filter(function (zone) {
+      return zone.orientation === 'B';
+    });
+
+
+    if (topArea.length > 0) {
+      topArea.forEach(function (zone) {
+        zone.appendTo(that.$playArea);
+      });
+    }
+
+    if (leftArea.length > 0) {
+      leftArea.forEach(function (zone) {
+        zone.appendTo(that.$playArea);
+      });
+    }
+
+    //place Image
+
+    let imageHeight= (this.playAreaRow-(topArea.length+bottomArea.length))*cellHeight;
+    let imageWidth = (this.playAreaCol-(leftArea.length+rightArea.length))*cellWidth;
+    $('<div class="placing-image-container" style="height:'+imageHeight+'px;width:'+imageWidth+'px"><img src="'+H5P.getPath(this.gridSrcImage)+'" /></div>').appendTo(that.$playArea);
+
+    if (rightArea.length > 0) {
+      rightArea.forEach(function (zone) {
+        zone.appendTo(that.$playArea);
+      });
+    }
+
+    if (bottomArea.length > 0) {
+      bottomArea.forEach(function (zone) {
+        zone.appendTo(that.$playArea);
+      });
+    }
+
+  };
+
+
+  ImageGrid.prototype.initializeFragments = function () {
+
+    this.fragments = [];
+    for (let i=0; i<this.gameLevel; i++) {
+      for (let j=0; j<this.gameLevel; j++) {
+        this.fragments.push('Fragment'+ (i*this.gameLevel+j));
+      }
+    }
+
+    H5P.shuffleArray(this.fragments);
+
+  };
   ImageGrid.prototype.fitGridPattern = function () {
 
     const $srcImage =  this.$initImageContainer.find('#srcImage');
